@@ -1,0 +1,4 @@
+a = 100
+b = "value"
+show a
+show b
