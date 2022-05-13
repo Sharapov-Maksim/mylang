@@ -1,4 +1,3 @@
 a = 100
-b = "value"
-show a
-show b
+if a == 100
+    show a

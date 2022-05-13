@@ -35,7 +35,6 @@ public class MyLang {
             mylangParser parser = new mylangParser(new CommonTokenStream(lexer));
 
             ParseTree tree = parser.program();
-
             /*String src = """
                             public static void main(String[] args) {
                                 int a = 100;

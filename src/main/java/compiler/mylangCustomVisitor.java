@@ -5,6 +5,7 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.ClassFile;
+import org.stringtemplate.v4.ST;
 
 import java.io.IOException;
 
@@ -41,6 +42,7 @@ public class mylangCustomVisitor extends mylangBaseVisitor<String>{
     @Override
     public String visitLet(mylangParser.LetContext ctx) {
         if (ctx.NUMBER() != null) {
+            //return "Integer " + ctx.VAR().getText() + " = new Integer(" + ctx.getChild(2).getText() + ");";
             return "int " + ctx.VAR().getText() + " = " + ctx.getChild(2).getText() + ";";
         } else if (ctx.STRING() != null) {
             return "String " + ctx.VAR().getText() + " = " + ctx.getChild(2).getText() + ";";
@@ -54,17 +56,36 @@ public class mylangCustomVisitor extends mylangBaseVisitor<String>{
 
     @Override
     public String visitIf_stat(mylangParser.If_statContext ctx) {
-        return super.visitIf_stat(ctx);
+        StringBuilder stringBuilder = new StringBuilder();
+        for(var node : ctx.children) {
+            switch (node.getText()) {
+                case "if", "else" -> {
+                    stringBuilder.append(node.getText());
+                }
+                default -> {
+                    stringBuilder.append(visit(node));
+                }
+            }
+        }
+        return stringBuilder.toString();
     }
 
     @Override
     public String visitCondition_block(mylangParser.Condition_blockContext ctx) {
-        return super.visitCondition_block(ctx);
+        StringBuilder stringBuilder = new StringBuilder("(");
+        stringBuilder.append(visit(ctx.expr()));
+        stringBuilder.append(")");
+        stringBuilder.append(visit(ctx.statement_block()));
+        return stringBuilder.toString();
     }
 
     @Override
     public String visitStatement_block(mylangParser.Statement_blockContext ctx) {
-        return super.visitStatement_block(ctx);
+        if (ctx.statement() != null)
+            // one statement after if() or else
+            return "\n" + visit(ctx.statement());
+        else
+            return "{\n" + visit(ctx.block()) + "\n}";
     }
 
     @Override
@@ -99,7 +120,11 @@ public class mylangCustomVisitor extends mylangBaseVisitor<String>{
 
     @Override
     public String visitEqualityExpr(mylangParser.EqualityExprContext ctx) {
-        return super.visitEqualityExpr(ctx);
+        return ctx.expr(0).getText() + ctx.getChild(1) + ctx.expr(1).getText();
+        /*if (ctx.EQ() != null)
+            return ctx.expr(0).getText() + ".equals(" + ctx.expr(1).getText() + ")";
+        else
+            return "!" + ctx.expr(0).getText() + ".equals(" + ctx.expr(1).getText() + ")";*/
     }
 
     @Override
