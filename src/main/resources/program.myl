@@ -1,3 +1,9 @@
-a = 100
-if a == 100
-    show a
+str stingToBePrinted = "Some text!"
+int a = 100
+if a == (80 + (100 / 10) * 2) {
+    show stingToBePrinted
+    while a < 200 {
+        a = a + 15
+        show a
+    }
+}

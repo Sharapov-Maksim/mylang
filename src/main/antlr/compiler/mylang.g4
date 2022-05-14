@@ -9,9 +9,10 @@ program : block EOF;
 
 block : statement*;
 
-statement : let | show | if_stat | while_stat;
-let : VAR '=' (NUMBER | STRING) ;
-show : 'show' (NUMBER | STRING | VAR) ;
+statement : let | assign | show | if_stat | while_stat;
+let : TYPE VAR '=' expr ;
+assign : VAR '=' expr ;
+show : 'show' expr ;
 
 if_stat
  : IF condition_block (ELSE IF condition_block)* (ELSE statement_block)?
@@ -25,9 +26,7 @@ statement_block
  | statement
  ;
 
-while_stat
- : WHILE expr statement_block
- ;
+while_stat : WHILE expr statement_block;
 
 expr
  : MINUS expr                           #unaryMinusExpr
@@ -62,6 +61,10 @@ FALSE : 'false';
 IF : 'if';
 ELSE : 'else';
 WHILE : 'while';
+
+TYPE : (INT_TYPE | STR_TYPE);
+INT_TYPE : 'int';
+STR_TYPE : 'str';
 
 VAR : LETTER (LETTER | DIGIT)* ;
 

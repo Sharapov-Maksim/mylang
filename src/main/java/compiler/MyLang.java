@@ -9,7 +9,6 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,12 +18,13 @@ public class MyLang {
 
     public static void main(String[] args) {
         try {
+            var c = Template.class;
             CharStream input = CharStreams.fromFileName("src/main/resources/program.myl");
 
             //ClassFile cf = new ClassFile(false, "Program", null);
             ClassPool pool = ClassPool.getDefault();
-            CtClass ctClass = pool.makeClass("Program");
-
+            CtClass ctClass = pool.getCtClass("compiler.Template");
+            ctClass.setName("Program");
 
             /*mylangLexer lexer = new mylangLexer(input);
             mylangParser parser = new mylangParser(new CommonTokenStream(lexer));
@@ -37,10 +37,15 @@ public class MyLang {
             ParseTree tree = parser.program();
             /*String src = """
                             public static void main(String[] args) {
-                                int a = 100;
-                                System.out.println(a);
+                                Integer a = Integer.valueOf(100);
+                                Integer b = Integer.valueOf(200);
+                                Boolean c = eq(a, b);
+                                System.out.println(c);
                             }""";*/
             String src = new mylangCustomVisitor(ctClass).visit(tree);
+            System.out.println("Generated Java source:");
+            System.out.println(src);
+
             CtMethod mainMethod = CtNewMethod.make(src, ctClass);
             ctClass.addMethod(mainMethod);
             ctClass.writeFile("src/main/resources");

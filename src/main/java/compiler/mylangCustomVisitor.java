@@ -30,7 +30,6 @@ public class mylangCustomVisitor extends mylangBaseVisitor<String>{
             String src = visit(statement);
             block.append(src).append("\n");
         }
-
         return block.toString();
     }
 
@@ -41,17 +40,18 @@ public class mylangCustomVisitor extends mylangBaseVisitor<String>{
 
     @Override
     public String visitLet(mylangParser.LetContext ctx) {
-        if (ctx.NUMBER() != null) {
-            //return "Integer " + ctx.VAR().getText() + " = new Integer(" + ctx.getChild(2).getText() + ");";
-            return "int " + ctx.VAR().getText() + " = " + ctx.getChild(2).getText() + ";";
-        } else if (ctx.STRING() != null) {
-            return "String " + ctx.VAR().getText() + " = " + ctx.getChild(2).getText() + ";";
-        } else throw new IllegalStateException("No value assigned to a variable");
+        String type = ctx.TYPE().getText().equals("int") ? "Integer " : "String ";
+        return type + ctx.VAR().getText() + " = " + visit(ctx.expr()) + ";";
+    }
+
+    @Override
+    public String visitAssign(mylangParser.AssignContext ctx) {
+        return ctx.VAR().getText() + " = " + visit(ctx.expr()) + ";";
     }
 
     @Override
     public String visitShow(mylangParser.ShowContext ctx) {
-        return "System.out.println(" + ctx.getChild(1).getText() + ");";
+        return "System.out.println(" + visit(ctx.expr()) + ");";
     }
 
     @Override
@@ -72,11 +72,8 @@ public class mylangCustomVisitor extends mylangBaseVisitor<String>{
 
     @Override
     public String visitCondition_block(mylangParser.Condition_blockContext ctx) {
-        StringBuilder stringBuilder = new StringBuilder("(");
-        stringBuilder.append(visit(ctx.expr()));
-        stringBuilder.append(")");
-        stringBuilder.append(visit(ctx.statement_block()));
-        return stringBuilder.toString();
+        return "(" + visit(ctx.expr()) + ")" +
+                visit(ctx.statement_block());
     }
 
     @Override
@@ -90,60 +87,78 @@ public class mylangCustomVisitor extends mylangBaseVisitor<String>{
 
     @Override
     public String visitWhile_stat(mylangParser.While_statContext ctx) {
-        return super.visitWhile_stat(ctx);
+        return "while(" + visit(ctx.expr()) + ")" +
+                visit(ctx.statement_block());
     }
 
     @Override
     public String visitUnaryMinusExpr(mylangParser.UnaryMinusExprContext ctx) {
-        return super.visitUnaryMinusExpr(ctx);
+        return "unaryMinus(" + visit(ctx.expr()) + ")";
     }
 
     @Override
     public String visitMultiplicationExpr(mylangParser.MultiplicationExprContext ctx) {
-        return super.visitMultiplicationExpr(ctx);
+                String operation = ctx.MULT() != null ? "multInt(" : "divInt(";
+        return operation + visit(ctx.expr(0)) + ", " + visit(ctx.expr(1)) + ")";
     }
 
     @Override
     public String visitAtomExpr(mylangParser.AtomExprContext ctx) {
-        return super.visitAtomExpr(ctx);
+        return visit(ctx.atom());
     }
 
     @Override
     public String visitAdditiveExpr(mylangParser.AdditiveExprContext ctx) {
-        return super.visitAdditiveExpr(ctx);
+        String operation = ctx.PLUS() != null ? "sumInt(" : "subInt(";
+        return operation + visit(ctx.expr(0)) + ", " + visit(ctx.expr(1)) + ")";
     }
 
     @Override
     public String visitRelationalExpr(mylangParser.RelationalExprContext ctx) {
-        return super.visitRelationalExpr(ctx);
+        String operation;
+        switch (ctx.op.getType()) {
+            case mylangParser.GT -> {
+                operation = "gtInt(";
+            }
+            case mylangParser.LT -> {
+                operation = "ltInt(";
+            }
+            case mylangParser.GTEQ -> {
+                operation = "gteqInt(";
+            }
+            case mylangParser.LTEQ -> {
+                operation = "lteqInt(";
+            }
+            default -> {
+                throw new IllegalStateException("Invalid relational expression");
+            }
+        }
+        return operation + visit(ctx.expr(0)) + ", " + visit(ctx.expr(1)) + ")";
     }
 
     @Override
     public String visitEqualityExpr(mylangParser.EqualityExprContext ctx) {
-        return ctx.expr(0).getText() + ctx.getChild(1) + ctx.expr(1).getText();
-        /*if (ctx.EQ() != null)
-            return ctx.expr(0).getText() + ".equals(" + ctx.expr(1).getText() + ")";
-        else
-            return "!" + ctx.expr(0).getText() + ".equals(" + ctx.expr(1).getText() + ")";*/
+        String operation = ctx.EQ() != null ? "eq(" : "neq(";
+        return operation + visit(ctx.expr(0)) + ", " + visit(ctx.expr(1)) + ")";
     }
 
     @Override
     public String visitParExpr(mylangParser.ParExprContext ctx) {
-        return super.visitParExpr(ctx);
+        return "(" + visit(ctx.expr()) + ")";
     }
 
     @Override
     public String visitNumberAtom(mylangParser.NumberAtomContext ctx) {
-        return super.visitNumberAtom(ctx);
+        return "Integer.valueOf(" + ctx.NUMBER().getText() + ")";
     }
 
     @Override
     public String visitVarAtom(mylangParser.VarAtomContext ctx) {
-        return super.visitVarAtom(ctx);
+        return ctx.VAR().getText();
     }
 
     @Override
     public String visitStringAtom(mylangParser.StringAtomContext ctx) {
-        return super.visitStringAtom(ctx);
+        return ctx.STRING().getText();
     }
 }
